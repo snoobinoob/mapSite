@@ -40,8 +40,10 @@ def jarName = "${project.ext.modName.replace(" ", "")}-${project.ext.gameVersion
 group project.ext.modID
 version project.ext.modVersion
 
-setSourceCompatibility(JavaVersion.VERSION_1_8)
-setTargetCompatibility(JavaVersion.VERSION_1_8)
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
 repositories {
     mavenCentral()
@@ -52,7 +54,7 @@ configurations {
 }
 
 sourceSets.main.output.resourcesDir = file("build/mod/resources/")
-sourceSets.main.java.outputDir = file("build/mod/")
+sourceSets.main.java.getDestinationDirectory().set(file("build/mod/"))
 sourceSets.main.compileClasspath += configurations.libDepends // Adds libDepends configuration to classpath
 def buildLocation = "build/jar/"
 
@@ -73,7 +75,7 @@ dependencies {
 //    libDepends files("path/to/library/jar.jar")
 }
 
-task createAppID {
+tasks.register('createAppID') {
     group "necesse"
     description "Creates steam_appid.txt file"
 
@@ -82,14 +84,14 @@ task createAppID {
     }
 }
 
-task createModInfoFile(type: JavaExec) {
+tasks.register('createModInfoFile', JavaExec) {
     group "necesse"
     description "Creates the mod info file"
 
     classpath = files(gameDirectory + "/Necesse.jar")
 
-    main = "CreateModInfoFile"
-    args "-file", "${sourceSets.main.java.outputDir}/mod.info",
+    mainClass = "CreateModInfoFile"
+    args "-file", "${sourceSets.main.java.getClassesDirectory().get()}/mod.info",
             "-id", "${project.ext.modID}",
             "-name", "${project.ext.modName}",
             "-version", "${project.ext.modVersion}",
@@ -103,43 +105,43 @@ task createModInfoFile(type: JavaExec) {
 // Makes compiling also create mod info file
 classes.dependsOn("createModInfoFile")
 
-task runClient(type: JavaExec) {
+tasks.register('runClient', JavaExec) {
     group "necesse"
     description "Run client with current mod"
     dependsOn "buildModJar", "createAppID"
 
     classpath = files(gameDirectory + "/Necesse.jar")
 
-    main = "StartSteamClient"
+    mainClass = "StartSteamClient"
     jvmArgs "-Xms512m", "-Xmx4G", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseG1GC", "-XX:G1NewSizePercent=20", "-XX:G1ReservePercent=20", "-XX:MaxGCPauseMillis=50", "-XX:G1HeapRegionSize=32M"
     args "-dev", "-mod \"${buildLocation}\""
 }
 
-task runDevClient(type: JavaExec) {
+tasks.register('runDevClient', JavaExec) {
     group "necesse"
     description "Run client with current mod"
     dependsOn "buildModJar", "createAppID"
 
     classpath = files(gameDirectory + "/Necesse.jar")
 
-    main = "StartSteamClient"
+    mainClass = "StartSteamClient"
     jvmArgs "-Xms512m", "-Xmx4G", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseG1GC", "-XX:G1NewSizePercent=20", "-XX:G1ReservePercent=20", "-XX:MaxGCPauseMillis=50", "-XX:G1HeapRegionSize=32M"
     args "-dev 1", "-mod \"${buildLocation}\""
 }
 
-task runServer(type: JavaExec) {
+tasks.register('runServer', JavaExec) {
     group "necesse"
     description "Run server with current mod"
     dependsOn "buildModJar"
 
     classpath = files(gameDirectory + "/Server.jar")
 
-    main = "StartDesktopServer"
+    mainClass = "StartDesktopServer"
     jvmArgs "-Xms512m", "-Xmx4G", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseG1GC", "-XX:G1NewSizePercent=20", "-XX:G1ReservePercent=20", "-XX:MaxGCPauseMillis=50", "-XX:G1HeapRegionSize=32M"
     args "-mod \"${buildLocation}\""
 }
 
-task buildModJar(type: Jar) {
+tasks.register('buildModJar', Jar) {
     group "necesse"
     description "Generates the mod jar into the build folder"
     dependsOn "classes"
@@ -151,10 +153,10 @@ task buildModJar(type: Jar) {
     }
 
     // Add mod output
-    from sourceSets.main.java.outputDir
+    from sourceSets.main.java.getClassesDirectory().get()
     // Add the dependencies
     from configurations.libDepends.collect { it.isDirectory() ? it : zipTree(it) }
 
-    archiveName "${jarName}.jar"
-    destinationDir file(buildLocation)
+    archiveFileName = "${jarName}.jar"
+    destinationDirectory = file(buildLocation)
 }
