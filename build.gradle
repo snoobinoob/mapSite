@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'gg.jte.gradle' version '3.2.1'
 }
 
 // Change the values below this to your mods values
@@ -68,11 +69,38 @@ dependencies {
     implementation files(gameDirectory + "/Necesse.jar")
     implementation fileTree(gameDirectory + "/lib/")
     implementation fileTree("./mods/") // Add all mods located in local mods folder
+    implementation "com.sparkjava:spark-core:2.9.4"
+    implementation "gg.jte:jte:3.2.1"
 
     // Add any third party library dependencies here. Remember to use libDepends, so that they will be added to your jar on build
     // These are some examples:
-//    libDepends group: 'com.google.guava', name: 'guava', version: '31.1-jre'
-//    libDepends files("path/to/library/jar.jar")
+    libDepends group: 'com.sparkjava', name: 'spark-core', version: '2.9.4'
+    libDepends group: 'org.eclipse.jetty.websocket', name: 'websocket-api', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty.websocket', name: 'websocket-client', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty.websocket', name: 'websocket-common', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty.websocket', name: 'websocket-server', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty.websocket', name: 'websocket-servlet', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-client', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-http', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-io', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-jmx', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-security', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-util', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-util-ajax', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-webapp', version: '9.4.48.v20220622'
+    libDepends group: 'org.eclipse.jetty', name: 'jetty-xml', version: '9.4.48.v20220622'
+
+    libDepends group: 'gg.jte', name: 'jte', version: '3.2.1'
+}
+
+jte {
+    precompile()
+}
+
+precompileJte {
+    targetDirectory = file("build/jte-classes").toPath()
 }
 
 tasks.register('createAppID') {
@@ -145,6 +173,8 @@ tasks.register('buildModJar', Jar) {
     group "necesse"
     description "Generates the mod jar into the build folder"
     dependsOn "classes"
+    dependsOn "precompileJte"
+    duplicatesStrategy = DuplicatesStrategy.WARN
 
     doFirst {
         fileTree(dir: buildLocation).exclude("${jarName}.jar").visit { FileVisitDetails details ->
@@ -155,7 +185,10 @@ tasks.register('buildModJar', Jar) {
     // Add mod output
     from sourceSets.main.java.getClassesDirectory().get()
     // Add the dependencies
-    from configurations.libDepends.collect { it.isDirectory() ? it : zipTree(it) }
+    from configurations.libDepends.findResults { it.isDirectory() ? it : zipTree(it) }
+    from fileTree("build/jte-classes") {
+        include "**/*.class"
+    }
 
     archiveFileName = "${jarName}.jar"
     destinationDirectory = file(buildLocation)
