@@ -12,13 +12,14 @@ const fetchChunk = async (chunkStr) => {
     drawChunk({chunkX, chunkY, ctx: document.getElementById('canvas').getContext('2d')})
 }
 
-const run = async () => {
+window.shouldProcessQueue = true;
+const startFetcher = async () => {
     while (true) {
-        if (window.mapsite.chunksToFetch.size > 0) {
+        if (window.shouldProcessQueue && window.mapsite.chunksToFetch.size > 0) {
             const chunkToFetch = [...window.mapsite.chunksToFetch][0];
             window.mapsite.chunksToFetch.delete(chunkToFetch);
             await fetchChunk(chunkToFetch)
         }
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, window.mapsite.millisPerChunkFetch));
     }
 }

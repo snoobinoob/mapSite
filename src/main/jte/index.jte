@@ -21,13 +21,7 @@
         </ul>
     @endif
 
-    <label for="centerX">Center X:</label>
-    <input id="centerX" type="text" inputmode="numeric" pattern="-?\d+" value="${model.spawn.x}">
-
-    <label for="centerY">Center Y:</label>
-    <input id="centerY" type="text" inputmode="numeric" pattern="-?\d+" value="${model.spawn.y}">
-
-    <button onclick="drawMapData()">Refresh</button>
+    <button onclick="goToSpawn()">Go to Spawn</button>
 </div>
 <script>
     window.mapsite.spawn = {
