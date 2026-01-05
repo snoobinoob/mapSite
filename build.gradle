@@ -186,9 +186,16 @@ tasks.register('buildModJar', Jar) {
     from sourceSets.main.java.getClassesDirectory().get()
     // Add the dependencies
     from configurations.libDepends.findResults { it.isDirectory() ? it : zipTree(it) }
-    from fileTree("build/jte-classes") {
+    // Copy templates over
+    from fileTree("build/jte-classes"), {
         include "**/*.class"
     }
+    // Copy non-template web resources
+    from(fileTree("src/main/jte"), {
+        include "**/*.js"
+        include "**/*.css"
+        into "resources/web"
+    })
 
     archiveFileName = "${jarName}.jar"
     destinationDirectory = file(buildLocation)
