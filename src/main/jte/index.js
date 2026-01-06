@@ -8,7 +8,7 @@ window.mapsite = {
     dragDelta: {x: 0, y: 0},
 };
 
-const drawFullMap = () => {
+const drawFullMap = (loadMissingRegions) => {
     const canvas = document.getElementById('canvas');
 
     const {x: minTileX, y: minTileY} = canvasCoordsToTileCoords({canvasX: 0, canvasY: 0});
@@ -25,12 +25,12 @@ const drawFullMap = () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (let chunkY = chunkBounds.minY; chunkY <= chunkBounds.maxY; chunkY++) {
         for (let chunkX = chunkBounds.minX; chunkX <= chunkBounds.maxX; chunkX++) {
-            drawChunk({chunkX, chunkY, ctx});
+            drawChunk({chunkX, chunkY, ctx, loadMissingRegions});
         }
     }
 }
 
-const drawChunk = ({chunkX, chunkY, ctx}) => {
+const drawChunk = ({chunkX, chunkY, ctx, loadMissingRegions}) => {
     const {y: offsetY, x: offsetX} = tileCoordsToCanvasCoords({
         tileX: chunkX * window.mapsite.chunkSize,
         tileY: chunkY * window.mapsite.chunkSize
@@ -38,7 +38,7 @@ const drawChunk = ({chunkX, chunkY, ctx}) => {
     const chunkData = window.mapsite.chunks[`${chunkX},${chunkY}`];
     const chunkSizeInPixels = window.mapsite.pixelsPerTile * window.mapsite.chunkSize;
     if (!chunkData || chunkData === 'PENDING') {
-        if (!chunkData) {
+        if (!chunkData && loadMissingRegions) {
             window.mapsite.chunks[`${chunkX},${chunkY}`] = 'PENDING';
             window.mapsite.chunksToFetch.add(`${chunkX},${chunkY}`);
         }
@@ -111,7 +111,7 @@ const goToSpawn = () => {
         x: window.mapsite.spawn.tileX,
         y: window.mapsite.spawn.tileY,
     };
-    drawFullMap();
+    drawFullMap(true);
 }
 
 const canvasDragStart = ({x, y}) => {
@@ -120,19 +120,17 @@ const canvasDragStart = ({x, y}) => {
         x: window.mapsite.dragStartTile.x - window.mapsite.centerCoords.x,
         y: window.mapsite.dragStartTile.y - window.mapsite.centerCoords.y,
     };
-    window.shouldProcessQueue = false;
 }
 
 const canvasDragStop = () => {
     window.mapsite.dragStartTile = null;
-    window.shouldProcessQueue = true;
+    drawFullMap(true);
 }
 
 const canvasDrag = ({movementX, movementY}) => {
     if (window.mapsite.dragStartTile === null) {
         return;
     }
-    window.shouldProcessQueue = false;
 
     window.mapsite.dragDelta.x += movementX / window.mapsite.pixelsPerTile;
     window.mapsite.dragDelta.y += movementY / window.mapsite.pixelsPerTile;
@@ -141,7 +139,7 @@ const canvasDrag = ({movementX, movementY}) => {
         x: Math.round(window.mapsite.dragStartTile.x - window.mapsite.dragDelta.x),
         y: Math.round(window.mapsite.dragStartTile.y - window.mapsite.dragDelta.y),
     };
-    drawFullMap();
+    drawFullMap(false);
 }
 
 const assignCanvasMouseListeners = () => {
@@ -156,7 +154,7 @@ addEventListener('load', () => {
     resizeCanvas();
     addEventListener('resize', () => {
         resizeCanvas();
-        drawFullMap();
+        drawFullMap(true);
     });
     assignCanvasMouseListeners();
     startFetcher();

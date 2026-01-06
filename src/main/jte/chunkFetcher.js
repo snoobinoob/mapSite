@@ -11,14 +11,14 @@ const fetchChunk = async (chunkStr) => {
     assignChunkData({chunkX, chunkY, chunkData: await result.json()})
 }
 
-window.shouldProcessQueue = true;
-const startFetcher = async () => {
-    while (true) {
-        if (window.shouldProcessQueue && window.mapsite.chunksToFetch.size > 0) {
+let intervalTimer = null;
+const startFetcher = () => {
+    clearInterval(intervalTimer);
+    intervalTimer = setInterval(() => {
+        if (window.mapsite.chunksToFetch.size > 0) {
             const chunkToFetch = [...window.mapsite.chunksToFetch][0];
             window.mapsite.chunksToFetch.delete(chunkToFetch);
-            await fetchChunk(chunkToFetch)
+            return fetchChunk(chunkToFetch);
         }
-        await new Promise((resolve) => setTimeout(resolve, window.mapsite.chunkFetchRateMs));
-    }
+    }, window.mapsite.chunkFetchRateMs);
 }
