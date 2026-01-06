@@ -8,8 +8,7 @@ const fetchChunk = async (chunkStr) => {
     const maxY = minY + window.mapsite.chunkSize - 1;
 
     const result = await fetch(`/map?x=${minX},${maxX}&y=${minY},${maxY}`);
-    window.mapsite.chunks[chunkStr] = await result.json();
-    drawChunk({chunkX, chunkY, ctx: document.getElementById('canvas').getContext('2d')})
+    assignChunkData({chunkX, chunkY, chunkData: await result.json()})
 }
 
 window.shouldProcessQueue = true;
@@ -20,6 +19,6 @@ const startFetcher = async () => {
             window.mapsite.chunksToFetch.delete(chunkToFetch);
             await fetchChunk(chunkToFetch)
         }
-        await new Promise((resolve) => setTimeout(resolve, window.mapsite.millisPerChunkFetch));
+        await new Promise((resolve) => setTimeout(resolve, window.mapsite.chunkFetchRateMs));
     }
 }
