@@ -17,6 +17,7 @@ public class IndexRoute extends SparkRouteHandler {
             Spark.get("/", handleGetRoot);
             Spark.get("/index.js", getResource("index.js"));
             Spark.get("/chunkFetcher.js", getResource("chunkFetcher.js"));
+            Spark.get("/websocket.js", getResource("websocket.js"));
             Spark.get("/styles.css", getResource("styles.css"));
         });
     }

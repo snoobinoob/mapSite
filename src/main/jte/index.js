@@ -157,6 +157,7 @@ addEventListener('load', () => {
         drawFullMap(true);
     });
     assignCanvasMouseListeners();
+    connectWebSocket();
     startFetcher();
     goToSpawn();
 });

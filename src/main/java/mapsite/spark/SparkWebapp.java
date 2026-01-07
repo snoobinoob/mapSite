@@ -6,11 +6,14 @@ import spark.Spark;
 
 public class SparkWebapp {
     private static Server server;
+    public static SparkWebSocket websocket;
 
     public static void init(Server server) {
         System.out.println("Starting webapp");
         SparkWebapp.server = server;
+        websocket = new SparkWebSocket();
         Spark.port(8080);
+        Spark.webSocket("/ws", websocket);
         registerPath("/", IndexRoute.class);
         registerPath("/map", MapRoute.class);
     }

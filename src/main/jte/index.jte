@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="index.js"></script>
     <script src="chunkFetcher.js"></script>
+    <script src="websocket.js"></script>
 </head>
 <body>
 <canvas id="canvas" class="back-canvas"></canvas>
