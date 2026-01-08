@@ -8,5 +8,20 @@ const connectWebSocket = () => {
 };
 
 const handleMessage = (message) => {
-    console.log(`Received message: '${message}'`);
+    try {
+        const messageJson = JSON.parse(message);
+        if (messageJson.players !== void 0) {
+            messageJson.players.forEach((playerUpdate) => {
+                const player = window.mapsite.players.find(({name}) => name === playerUpdate.name);
+                if (player) {
+                    Object.assign(player, playerUpdate);
+                } else {
+                    window.mapsite.players.push(playerUpdate);
+                }
+            });
+            drawFullMap(false);
+        }
+    } catch (err) {
+        console.error(err);
+    }
 }

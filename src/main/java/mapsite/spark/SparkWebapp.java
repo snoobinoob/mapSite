@@ -11,7 +11,7 @@ public class SparkWebapp {
     public static void init(Server server) {
         System.out.println("Starting webapp");
         SparkWebapp.server = server;
-        websocket = new SparkWebSocket();
+        websocket = new SparkWebSocket(server);
         Spark.port(8080);
         Spark.webSocket("/ws", websocket);
         registerPath("/", IndexRoute.class);

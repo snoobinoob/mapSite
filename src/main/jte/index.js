@@ -4,6 +4,7 @@ window.mapsite = {
     chunks: {},
     chunksToFetch: new Set(),
     chunkFetchRateMs: 100,
+    players: [],
     dragStartTile: null,
     dragDelta: {x: 0, y: 0},
 };
@@ -13,16 +14,42 @@ const drawFullMap = (loadMissingRegions) => {
 
     const {x: minTileX, y: minTileY} = canvasCoordsToTileCoords({canvasX: 0, canvasY: 0});
     const {x: maxTileX, y: maxTileY} = canvasCoordsToTileCoords({canvasX: canvas.width, canvasY: canvas.height});
+
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    drawChunks({ctx, minTileX, minTileY, maxTileX, maxTileY, loadMissingRegions});
+    drawPlayers({ctx, minTileX, minTileY, maxTileX, maxTileY});
+}
+
+const drawPlayers = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
+    for (const player of window.mapsite.players) {
+        if (minTileX <= player.x && player.x <= maxTileX && minTileY <= player.y && player.y <= maxTileY) {
+            const {x, y} = tileCoordsToCanvasCoords({tileX: player.x, tileY: player.y});
+            ctx.fillStyle = 'lightblue';
+            ctx.beginPath();
+            ctx.arc(x, y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+
+            ctx.font = '16px Courier New';
+            const {width: textWidth} = ctx.measureText(player.name);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.fillRect(x - (textWidth / 2 + 2), y - 26, textWidth + 4, 16)
+            ctx.fillStyle = 'black';
+            ctx.fillText(player.name, x - (textWidth / 2), y - 12);
+        }
+    }
+}
+
+const drawChunks = ({ctx, minTileX, minTileY, maxTileX, maxTileY, loadMissingRegions}) => {
     const chunkBounds = {
         minX: Math.floor(minTileX / window.mapsite.chunkSize),
         minY: Math.floor(minTileY / window.mapsite.chunkSize),
         maxX: Math.floor(maxTileX / window.mapsite.chunkSize),
         maxY: Math.floor(maxTileY / window.mapsite.chunkSize),
     }
-
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (let chunkY = chunkBounds.minY; chunkY <= chunkBounds.maxY; chunkY++) {
         for (let chunkX = chunkBounds.minX; chunkX <= chunkBounds.maxX; chunkX++) {
             drawChunk({chunkX, chunkY, ctx, loadMissingRegions});
@@ -123,8 +150,10 @@ const canvasDragStart = ({x, y}) => {
 }
 
 const canvasDragStop = () => {
-    window.mapsite.dragStartTile = null;
-    drawFullMap(true);
+    if (window.mapsite.dragStartTile) {
+        window.mapsite.dragStartTile = null;
+        drawFullMap(true);
+    }
 }
 
 const canvasDrag = ({movementX, movementY}) => {

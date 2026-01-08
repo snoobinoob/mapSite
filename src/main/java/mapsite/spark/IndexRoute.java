@@ -14,11 +14,11 @@ public class IndexRoute extends SparkRouteHandler {
     @Override
     public void register(String path) {
         Spark.path(path, () -> {
-            Spark.get("/", handleGetRoot);
-            Spark.get("/index.js", getResource("index.js"));
-            Spark.get("/chunkFetcher.js", getResource("chunkFetcher.js"));
-            Spark.get("/websocket.js", getResource("websocket.js"));
-            Spark.get("/styles.css", getResource("styles.css"));
+            Spark.get(path, handleGetRoot);
+            Spark.get(path + "index.js", getResource("index.js"));
+            Spark.get(path + "chunkFetcher.js", getResource("chunkFetcher.js"));
+            Spark.get(path + "websocket.js", getResource("websocket.js"));
+            Spark.get(path + "styles.css", getResource("styles.css"));
         });
     }
 

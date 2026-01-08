@@ -47,5 +47,17 @@ public class MapSiteEntry {
                 SparkWebapp.websocket.sendMessageToAll((String) objects[0]);
             }
         });
+
+        CommandsManager.registerServerCommand(new ModularChatCommand(
+                "mapsite:ws_send_players",
+                "Send player info over websocket",
+                PermissionLevel.ADMIN,
+                false
+        ) {
+            @Override
+            public void runModular(Client client, Server server, ServerClient serverClient, Object[] objects, String[] strings, CommandLog commandLog) {
+                SparkWebapp.websocket.sendPlayerInformation();
+            }
+        });
     }
 }
