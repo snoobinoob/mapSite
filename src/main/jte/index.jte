@@ -13,9 +13,12 @@
 <canvas id="canvas" class="back-canvas"></canvas>
 <div class="overlay">
     <div>
+        <button onclick="zoom(1)">+</button>
+        <button onclick="zoom(-1)">-</button>
+    </div>
+    <div>
         <p>Mouse Position: <strong id="pointer-location">-</strong></p>
     </div>
-    <button onclick="goToLocation(window.mapsite.spawn)">Go to Spawn</button>
 </div>
 <script>
     window.mapsite = {
@@ -26,7 +29,7 @@
         },
         chunkSize: ${Settings.mapChunkSize},
         chunkFetchRateMs: ${Settings.mapChunkFetchRateMs},
-        pixelsPerTile: 16,
+        pixelsPerTile: 4,
     };
 </script>
 </body>

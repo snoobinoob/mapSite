@@ -133,26 +133,37 @@ const resizeCanvas = () => {
 
 const updateUrl = () => {
     const {x, y} = window.mapsite.centerCoords;
+    const hashComponents = [];
     const isSpawn = x === window.mapsite.spawn.x && y === window.mapsite.spawn.y;
-    const hashStr = isSpawn ? '' : `#x:${x},y:${y}`;
-    const newUrl = window.location.href.replace(window.location.hash, '') + hashStr;
+    if (!isSpawn) {
+        hashComponents.push(`x:${x},y:${y}`);
+    }
+    const isDefaultZoom = window.mapsite.pixelsPerTile === 4;
+    if (!isDefaultZoom) {
+        hashComponents.push(`z:${window.mapsite.pixelsPerTile}`);
+    }
+    const hashStr = hashComponents.length > 0 ? '#' + hashComponents.join(',') : '';
+    const newUrl = window.location.href.replace(/#.*/, '') + hashStr;
     window.history.replaceState(null, '', newUrl);
 }
 
 const goToStartingLocation = () => {
-    const posMatch = window.location.hash.match(/x:(-?\d+),y:(-?\d+)/);
-    if (posMatch) {
-        window.mapsite.centerCoords = {
-            x: Number.parseInt(posMatch[1]),
-            y: Number.parseInt(posMatch[2]),
-        }
-    } else {
-        window.mapsite.centerCoords = {
-            x: window.mapsite.spawn.x,
-            y: window.mapsite.spawn.y,
+    const zoomMatch = window.location.hash.match(/z:(\d+)/);
+    if (zoomMatch) {
+        const pixelsPerTile = Number.parseInt(zoomMatch[1]);
+        if ([1, 2, 4, 8, 16, 32].includes(pixelsPerTile)) {
+            window.mapsite.pixelsPerTile = pixelsPerTile;
         }
     }
-    drawFullMap(true);
+    const posMatch = window.location.hash.match(/x:(-?\d+),y:(-?\d+)/);
+    if (posMatch) {
+        goToLocation({
+            x: Number.parseInt(posMatch[1]),
+            y: Number.parseInt(posMatch[2]),
+        });
+    } else {
+        goToLocation(window.mapsite.spawn);
+    }
 }
 
 const goToLocation = ({x, y}) => {
@@ -205,6 +216,18 @@ const updateMouseTile = ({x, y}) => {
     }
     window.mapsite.mouseTile = canvasCoordsToTileCoords({canvasX: x, canvasY: y});
     document.getElementById('pointer-location').innerText = `(${window.mapsite.mouseTile.x}, ${window.mapsite.mouseTile.y})`;
+}
+
+const zoom = (amount) => {
+    const levels = [1, 2, 4, 8, 16, 32];
+    let currLevel = levels.indexOf(window.mapsite.pixelsPerTile);
+    if (currLevel === -1) {
+        currLevel = 2;
+    }
+    const newLevel = Math.min(Math.max(0, currLevel + amount), levels.length - 1);
+    window.mapsite.pixelsPerTile = levels[newLevel];
+    updateUrl();
+    drawFullMap(true);
 }
 
 const assignCanvasMouseListeners = () => {
