@@ -8,6 +8,7 @@ import necesse.engine.commands.*;
 import necesse.engine.commands.parameterHandlers.StringParameterHandler;
 import necesse.engine.events.ServerStartEvent;
 import necesse.engine.events.ServerStopEvent;
+import necesse.engine.modLoader.ModSettings;
 import necesse.engine.modLoader.annotations.ModEntry;
 import necesse.engine.network.client.Client;
 import necesse.engine.network.server.Server;
@@ -17,6 +18,10 @@ import necesse.engine.network.server.ServerClient;
 public class MapSiteEntry {
     public void init() {
         System.out.println("Hello World!");
+    }
+
+    public ModSettings initSettings() {
+        return new Settings();
     }
 
     public void postInit() {

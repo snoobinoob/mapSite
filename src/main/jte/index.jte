@@ -1,4 +1,5 @@
 @import mapsite.webmodel.ServerInfoModel
+@import mapsite.Settings
 
 @param ServerInfoModel model
 <head>
@@ -25,9 +26,15 @@
     <button onclick="goToSpawn()">Go to Spawn</button>
 </div>
 <script>
-    window.mapsite.spawn = {
-        tileX: ${model.spawn.x},
-        tileY: ${model.spawn.y},
+    window.mapsite = {
+        ...window.mapsite,
+        spawn: {
+            tileX: ${model.spawn.x},
+            tileY: ${model.spawn.y},
+        },
+        chunkSize: ${Settings.mapChunkSize},
+        chunkFetchRateMs: ${Settings.mapChunkFetchRateMs},
+        pixelsPerTile: 16,
     };
 </script>
 </body>

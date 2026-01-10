@@ -1,5 +1,6 @@
 package mapsite.spark;
 
+import mapsite.Settings;
 import mapsite.spark.websocket.SparkWebSocket;
 import mapsite.spark.websocket.WebSocketUpdateService;
 import necesse.engine.GameLog;
@@ -14,7 +15,7 @@ public class SparkWebapp {
         System.out.println("Starting webapp");
         SparkWebapp.server = server;
         websocket = new SparkWebSocket(server);
-        Spark.port(8080);
+        Spark.port(Settings.webappPort);
         Spark.webSocket("/ws", websocket);
         registerPath("/", IndexRoute.class);
         registerPath("/map", MapRoute.class);

@@ -1,5 +1,6 @@
 package mapsite.spark.websocket;
 
+import mapsite.Settings;
 import mapsite.TileLocation;
 import mapsite.spark.SparkWebapp;
 import necesse.engine.GameLog;
@@ -23,8 +24,8 @@ public class WebSocketUpdateService {
         }
 
         taskTimer = new Timer("mapsiteTaskTimer");
-        taskTimer.scheduleAtFixedRate(new SendPlayerInfoTask(), 0, 1000);
-        taskTimer.scheduleAtFixedRate(new SendMapUpdatesTask(), 0, 5000);
+        taskTimer.scheduleAtFixedRate(new SendPlayerInfoTask(), 0, Settings.playerUpdateRateMs);
+        taskTimer.scheduleAtFixedRate(new SendMapUpdatesTask(), 0, Settings.mapUpdateRateMs);
     }
 
     public static void stop() {

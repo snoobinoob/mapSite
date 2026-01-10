@@ -1,9 +1,6 @@
 window.mapsite = {
-    pixelsPerTile: 4,
-    chunkSize: 64,
     chunks: {},
     chunksToFetch: new Set(),
-    chunkFetchRateMs: 100,
     players: [],
     dragStartTile: null,
     dragDelta: {x: 0, y: 0},
