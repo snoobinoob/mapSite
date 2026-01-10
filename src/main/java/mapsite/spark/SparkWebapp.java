@@ -1,5 +1,7 @@
 package mapsite.spark;
 
+import mapsite.spark.websocket.SparkWebSocket;
+import mapsite.spark.websocket.WebSocketUpdateService;
 import necesse.engine.GameLog;
 import necesse.engine.network.server.Server;
 import spark.Spark;
@@ -28,6 +30,7 @@ public class SparkWebapp {
     }
 
     public static void stop() {
+        WebSocketUpdateService.stop();
         Spark.stop();
     }
 }
