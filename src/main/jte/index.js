@@ -4,6 +4,7 @@ window.mapsite = {
     players: [],
     dragStartTile: null,
     dragDelta: {x: 0, y: 0},
+    mouseTile: null,
 };
 
 const drawFullMap = (loadMissingRegions) => {
@@ -130,11 +131,33 @@ const resizeCanvas = () => {
     canvas.width = canvas.offsetWidth;
 }
 
-const goToSpawn = () => {
-    window.mapsite.centerCoords = {
-        x: window.mapsite.spawn.tileX,
-        y: window.mapsite.spawn.tileY,
-    };
+const updateUrl = () => {
+    const {x, y} = window.mapsite.centerCoords;
+    const isSpawn = x === window.mapsite.spawn.x && y === window.mapsite.spawn.y;
+    const hashStr = isSpawn ? '' : `#x:${x},y:${y}`;
+    const newUrl = window.location.href.replace(window.location.hash, '') + hashStr;
+    window.history.replaceState(null, '', newUrl);
+}
+
+const goToStartingLocation = () => {
+    const posMatch = window.location.hash.match(/x:(-?\d+),y:(-?\d+)/);
+    if (posMatch) {
+        window.mapsite.centerCoords = {
+            x: Number.parseInt(posMatch[1]),
+            y: Number.parseInt(posMatch[2]),
+        }
+    } else {
+        window.mapsite.centerCoords = {
+            x: window.mapsite.spawn.x,
+            y: window.mapsite.spawn.y,
+        }
+    }
+    drawFullMap(true);
+}
+
+const goToLocation = ({x, y}) => {
+    window.mapsite.centerCoords = {x, y};
+    updateUrl();
     drawFullMap(true);
 }
 
@@ -147,10 +170,18 @@ const canvasDragStart = ({x, y}) => {
 }
 
 const canvasDragStop = () => {
-    if (window.mapsite.dragStartTile) {
-        window.mapsite.dragStartTile = null;
-        drawFullMap(true);
+    if (window.mapsite.dragStartTile === null) {
+        return;
     }
+
+    window.mapsite.dragStartTile = null;
+    window.mapsite.centerCoords = {
+        x: Math.round(window.mapsite.centerCoords.x),
+        y: Math.round(window.mapsite.centerCoords.y),
+    };
+
+    updateUrl();
+    drawFullMap(true);
 }
 
 const canvasDrag = ({movementX, movementY}) => {
@@ -162,10 +193,18 @@ const canvasDrag = ({movementX, movementY}) => {
     window.mapsite.dragDelta.y += movementY / window.mapsite.pixelsPerTile;
 
     window.mapsite.centerCoords = {
-        x: Math.round(window.mapsite.dragStartTile.x - window.mapsite.dragDelta.x),
-        y: Math.round(window.mapsite.dragStartTile.y - window.mapsite.dragDelta.y),
+        x: window.mapsite.dragStartTile.x - window.mapsite.dragDelta.x,
+        y: window.mapsite.dragStartTile.y - window.mapsite.dragDelta.y,
     };
     drawFullMap(false);
+}
+
+const updateMouseTile = ({x, y}) => {
+    if (window.mapsite.dragStartTile) {
+        return;
+    }
+    window.mapsite.mouseTile = canvasCoordsToTileCoords({canvasX: x, canvasY: y});
+    document.getElementById('pointer-location').innerText = `(${window.mapsite.mouseTile.x}, ${window.mapsite.mouseTile.y})`;
 }
 
 const assignCanvasMouseListeners = () => {
@@ -174,6 +213,7 @@ const assignCanvasMouseListeners = () => {
     canvas.addEventListener('mouseup', canvasDragStop);
     canvas.addEventListener('mouseleave', canvasDragStop);
     canvas.addEventListener('mousemove', canvasDrag);
+    canvas.addEventListener('mousemove', updateMouseTile);
 }
 
 addEventListener('load', () => {
@@ -185,5 +225,5 @@ addEventListener('load', () => {
     assignCanvasMouseListeners();
     connectWebSocket();
     startFetcher();
-    goToSpawn();
+    goToStartingLocation();
 });

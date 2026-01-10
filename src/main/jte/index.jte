@@ -12,25 +12,17 @@
 <body>
 <canvas id="canvas" class="back-canvas"></canvas>
 <div class="overlay">
-    @if(model.onlinePlayers.isEmpty())
-        <p>No players online</p>
-    @else
-        <p>Online players:</p>
-        <ul>
-            @for(String playerName : model.onlinePlayers)
-                <li>${playerName}</li>
-            @endfor
-        </ul>
-    @endif
-
-    <button onclick="goToSpawn()">Go to Spawn</button>
+    <div>
+        <p>Mouse Position: <strong id="pointer-location">-</strong></p>
+    </div>
+    <button onclick="goToLocation(window.mapsite.spawn)">Go to Spawn</button>
 </div>
 <script>
     window.mapsite = {
         ...window.mapsite,
         spawn: {
-            tileX: ${model.spawn.x},
-            tileY: ${model.spawn.y},
+            x: ${model.spawn.x},
+            y: ${model.spawn.y},
         },
         chunkSize: ${Settings.mapChunkSize},
         chunkFetchRateMs: ${Settings.mapChunkFetchRateMs},
