@@ -8,7 +8,7 @@ window.mapsite = {
     mouseTile: null,
 };
 
-const drawFullMap = (loadMissingRegions) => {
+const drawFullMap = () => {
     const canvas = document.getElementById('canvas');
 
     const {x: minTileX, y: minTileY} = canvasCoordsToTileCoords({canvasX: 0, canvasY: 0});
@@ -19,9 +19,11 @@ const drawFullMap = (loadMissingRegions) => {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    drawChunks({ctx, minTileX, minTileY, maxTileX, maxTileY, loadMissingRegions});
+    drawChunks({ctx, minTileX, minTileY, maxTileX, maxTileY});
     drawSettlements({ctx, minTileX, minTileY, maxTileX, maxTileY});
     drawPlayers({ctx, minTileX, minTileY, maxTileX, maxTileY});
+
+    requestAnimationFrame(drawFullMap);
 }
 
 const drawPlayers = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
@@ -55,10 +57,12 @@ const drawSettlements = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
 
         ctx.fillStyle = 'rgba(80, 255, 150, 0.2)';
         ctx.fillRect(startCoords.x, startCoords.y, endCoords.x - startCoords.x, endCoords.y - startCoords.y);
+        ctx.strokeStyle = 'rgba(80, 255, 150, 0.6)';
+        ctx.strokeRect(startCoords.x, startCoords.y, endCoords.x - startCoords.x, endCoords.y - startCoords.y);
     }
 }
 
-const drawChunks = ({ctx, minTileX, minTileY, maxTileX, maxTileY, loadMissingRegions}) => {
+const drawChunks = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
     const chunkBounds = {
         minX: Math.floor(minTileX / window.mapsite.chunkSize),
         minY: Math.floor(minTileY / window.mapsite.chunkSize),
@@ -67,12 +71,12 @@ const drawChunks = ({ctx, minTileX, minTileY, maxTileX, maxTileY, loadMissingReg
     }
     for (let chunkY = chunkBounds.minY; chunkY <= chunkBounds.maxY; chunkY++) {
         for (let chunkX = chunkBounds.minX; chunkX <= chunkBounds.maxX; chunkX++) {
-            drawChunk({chunkX, chunkY, ctx, loadMissingRegions});
+            drawChunk({ctx, chunkX, chunkY});
         }
     }
 }
 
-const drawChunk = ({chunkX, chunkY, ctx, loadMissingRegions}) => {
+const drawChunk = ({ctx, chunkX, chunkY}) => {
     const {y: offsetY, x: offsetX} = tileCoordsToCanvasCoords({
         tileX: chunkX * window.mapsite.chunkSize,
         tileY: chunkY * window.mapsite.chunkSize
@@ -80,22 +84,12 @@ const drawChunk = ({chunkX, chunkY, ctx, loadMissingRegions}) => {
     const chunkData = window.mapsite.chunks[`${chunkX},${chunkY}`];
     const chunkSizeInPixels = window.mapsite.pixelsPerTile * window.mapsite.chunkSize;
     if (!chunkData || chunkData === 'PENDING') {
-        if (!chunkData && loadMissingRegions) {
-            window.mapsite.chunks[`${chunkX},${chunkY}`] = 'PENDING';
-            window.mapsite.chunksToFetch.add(`${chunkX},${chunkY}`);
-        }
         ctx.fillStyle = 'lightgrey';
         ctx.fillRect(offsetX, offsetY, chunkSizeInPixels, chunkSizeInPixels);
         return;
     }
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(chunkData, offsetX, offsetY, chunkSizeInPixels, chunkSizeInPixels);
-}
-
-const loadSettlements = () => {
-    fetch('/settlements')
-        .then((res) => res.json())
-        .then((settlementData) => window.mapsite.settlements = settlementData);
 }
 
 const assignChunkData = ({chunkX, chunkY, chunkData}) => {
@@ -119,6 +113,31 @@ const assignChunkData = ({chunkX, chunkY, chunkData}) => {
     ctx.putImageData(imageData, 0, 0);
     window.mapsite.chunks[`${chunkX},${chunkY}`] = chunkCanvas;
     drawChunk({chunkX, chunkY, ctx: document.getElementById('canvas').getContext('2d')});
+}
+
+const loadSettlements = () => {
+    fetch('/settlements')
+        .then((res) => res.json())
+        .then((settlementData) => window.mapsite.settlements = settlementData);
+}
+
+const loadMissingChunks = () => {
+    const canvas = document.getElementById('canvas');
+    const minTileCoords = canvasCoordsToTileCoords({canvasX: 0, canvasY: 0});
+    const maxTileCoords = canvasCoordsToTileCoords({canvasX: canvas.width, canvasY: canvas.height});
+    const minChunkX = Math.floor(minTileCoords.x / window.mapsite.chunkSize);
+    const minChunkY = Math.floor(minTileCoords.y / window.mapsite.chunkSize);
+    const maxChunkX = Math.floor(maxTileCoords.x / window.mapsite.chunkSize);
+    const maxChunkY = Math.floor(maxTileCoords.y / window.mapsite.chunkSize);
+    for (let chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
+        for (let chunkX = minChunkX; chunkX < maxChunkX; chunkX++) {
+            const chunkKey = `${chunkX},${chunkY}`;
+            if (!window.mapsite.chunks[chunkKey]) {
+                window.mapsite.chunks[chunkKey] = 'PENDING';
+                window.mapsite.chunksToFetch.add(chunkKey);
+            }
+        }
+    }
 }
 
 const canvasCoordsToTileCoords = ({canvasX, canvasY}) => {
@@ -192,7 +211,7 @@ const goToStartingLocation = () => {
 const goToLocation = ({x, y}) => {
     window.mapsite.centerCoords = {x, y};
     updateUrl();
-    drawFullMap(true);
+    loadMissingChunks();
 }
 
 const canvasDragStart = ({x, y}) => {
@@ -215,7 +234,7 @@ const canvasDragStop = () => {
     };
 
     updateUrl();
-    drawFullMap(true);
+    loadMissingChunks();
 }
 
 const canvasDrag = ({movementX, movementY}) => {
@@ -230,7 +249,6 @@ const canvasDrag = ({movementX, movementY}) => {
         x: window.mapsite.dragStartTile.x - window.mapsite.dragDelta.x,
         y: window.mapsite.dragStartTile.y - window.mapsite.dragDelta.y,
     };
-    drawFullMap(false);
 }
 
 const updateMouseTile = ({x, y}) => {
@@ -250,7 +268,7 @@ const zoom = (amount) => {
     const newLevel = Math.min(Math.max(0, currLevel + amount), levels.length - 1);
     window.mapsite.pixelsPerTile = levels[newLevel];
     updateUrl();
-    drawFullMap(true);
+    loadMissingChunks();
 }
 
 const assignCanvasMouseListeners = () => {
@@ -273,4 +291,5 @@ addEventListener('load', () => {
     startFetcher();
     loadSettlements();
     goToStartingLocation();
+    requestAnimationFrame(drawFullMap);
 });
