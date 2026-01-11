@@ -24,8 +24,8 @@ public class SettlementInfoModel {
         Rectangle regionRectangle = settlementData.getRegionRectangle();
         int left = GameMath.getTileCoordByRegion(regionRectangle.x);
         int top = GameMath.getTileCoordByRegion(regionRectangle.y);
-        int right = left + RegionManager.REGION_SIZE * regionRectangle.width;
-        int bottom = top + RegionManager.REGION_SIZE * regionRectangle.height;
+        int right = left + RegionManager.REGION_SIZE * regionRectangle.width - 1;
+        int bottom = top + RegionManager.REGION_SIZE * regionRectangle.height - 1;
         bounds = new int[][]{new int[]{left, top}, new int[]{right, bottom}};
     }
 

@@ -5,7 +5,8 @@ window.mapsite = {
     settlements: [],
     dragStartTile: null,
     dragDelta: {x: 0, y: 0},
-    mouseTile: null,
+    mousePos: {tile: null, canvas: null},
+    drawPlayerNames: true,
 };
 
 const drawFullMap = () => {
@@ -22,8 +23,71 @@ const drawFullMap = () => {
     drawChunks({ctx, minTileX, minTileY, maxTileX, maxTileY});
     drawSettlements({ctx, minTileX, minTileY, maxTileX, maxTileY});
     drawPlayers({ctx, minTileX, minTileY, maxTileX, maxTileY});
+    drawTooltip({ctx});
 
     requestAnimationFrame(drawFullMap);
+}
+
+const drawTooltip = ({ctx}) => {
+    if (!window.mapsite.mousePos.canvas) {
+        return;
+    }
+
+    if (!window.mapsite.drawPlayerNames) {
+        const {player, dist2} = window.mapsite.players.reduce((acc, player) => {
+            const dist2 = distToMouse2({tileX: player.x, tileY: player.y});
+            return dist2 > acc.dist2 ? acc : {player, dist2};
+        }, {dist2: NaN});
+        if (dist2 < 100) {
+            drawPlayerName({ctx, player});
+            return;
+        }
+    }
+
+    const mouseTile = window.mapsite.mousePos.tile;
+    for (const settlement of window.mapsite.settlements) {
+        const {bounds} = settlement;
+        if (bounds[0][0] <= mouseTile.x && bounds[0][1] <= mouseTile.y && mouseTile.x <= bounds[1][0] && mouseTile.y <= bounds[1][1]) {
+            drawSettlementTooltip({ctx, settlement});
+            return;
+        }
+    }
+}
+
+const drawPlayerName = ({ctx, player}) => {
+    ctx.font = '16px Courier New';
+    const {width: textWidth} = ctx.measureText(player.name);
+    const {x, y} = tileCoordsToCanvasCoords({tileX: player.x, tileY: player.y});
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillRect(x - (textWidth / 2 + 2), y - 26, textWidth + 4, 16)
+    ctx.fillStyle = 'black';
+    ctx.fillText(player.name, x - (textWidth / 2), y - 12);
+}
+
+const drawSettlementTooltip = ({ctx, settlement}) => {
+    const textLines = [
+        {text: settlement.name, align: 1},
+        {text: `Owner: ${settlement.owner}`, align: 0}
+    ];
+    ctx.font = '16px Courier New';
+    const lines = textLines.map((line) => ({
+        ...line,
+        width: ctx.measureText(line.text).width,
+    }));
+    const maxWidth = lines.reduce((acc, {width}) => Math.max(acc, width), 0);
+    const {x, y} = window.mapsite.mousePos.canvas;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.fillRect(x - maxWidth / 2 - 2, y - 4 - 16 * lines.length, maxWidth + 4, 16 * lines.length)
+    ctx.fillStyle = 'black';
+    lines.forEach((line, i) => {
+        const startX = x - maxWidth / 2 + line.align / 2 * (maxWidth - line.width);
+        ctx.fillText(line.text, startX, y - 8 + 16 * (i - 1));
+    });
+}
+
+const distToMouse2 = ({tileX, tileY}) => {
+    const {x, y} = tileCoordsToCanvasCoords({tileX, tileY});
+    return (x - window.mapsite.mousePos.canvas?.x) ** 2 + (y - window.mapsite.mousePos.canvas?.y) ** 2;
 }
 
 const drawPlayers = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
@@ -34,13 +98,9 @@ const drawPlayers = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
             ctx.beginPath();
             ctx.arc(x, y, 8, 0, 2 * Math.PI);
             ctx.fill();
-
-            ctx.font = '16px Courier New';
-            const {width: textWidth} = ctx.measureText(player.name);
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-            ctx.fillRect(x - (textWidth / 2 + 2), y - 26, textWidth + 4, 16)
-            ctx.fillStyle = 'black';
-            ctx.fillText(player.name, x - (textWidth / 2), y - 12);
+            if (window.mapsite.drawPlayerNames) {
+                drawPlayerName({ctx, player});
+            }
         }
     }
 }
@@ -54,11 +114,13 @@ const drawSettlements = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
 
         const startCoords = tileCoordsToCanvasCoords({tileX: bounds[0][0], tileY: bounds[0][1]});
         const endCoords = tileCoordsToCanvasCoords({tileX: bounds[1][0], tileY: bounds[1][1]});
+        const width = endCoords.x - startCoords.x + window.mapsite.pixelsPerTile;
+        const height = endCoords.y - startCoords.y + window.mapsite.pixelsPerTile;
 
         ctx.fillStyle = 'rgba(80, 255, 150, 0.2)';
-        ctx.fillRect(startCoords.x, startCoords.y, endCoords.x - startCoords.x, endCoords.y - startCoords.y);
+        ctx.fillRect(startCoords.x, startCoords.y, width, height);
         ctx.strokeStyle = 'rgba(80, 255, 150, 0.6)';
-        ctx.strokeRect(startCoords.x, startCoords.y, endCoords.x - startCoords.x, endCoords.y - startCoords.y);
+        ctx.strokeRect(startCoords.x, startCoords.y, width, height);
     }
 }
 
@@ -129,8 +191,8 @@ const loadMissingChunks = () => {
     const minChunkY = Math.floor(minTileCoords.y / window.mapsite.chunkSize);
     const maxChunkX = Math.floor(maxTileCoords.x / window.mapsite.chunkSize);
     const maxChunkY = Math.floor(maxTileCoords.y / window.mapsite.chunkSize);
-    for (let chunkY = minChunkY; chunkY < maxChunkY; chunkY++) {
-        for (let chunkX = minChunkX; chunkX < maxChunkX; chunkX++) {
+    for (let chunkY = minChunkY; chunkY <= maxChunkY; chunkY++) {
+        for (let chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
             const chunkKey = `${chunkX},${chunkY}`;
             if (!window.mapsite.chunks[chunkKey]) {
                 window.mapsite.chunks[chunkKey] = 'PENDING';
@@ -251,12 +313,19 @@ const canvasDrag = ({movementX, movementY}) => {
     };
 }
 
-const updateMouseTile = ({x, y}) => {
+const updateMousePos = ({x, y}) => {
     if (window.mapsite.dragStartTile) {
         return;
     }
-    window.mapsite.mouseTile = canvasCoordsToTileCoords({canvasX: x, canvasY: y});
-    document.getElementById('pointer-location').innerText = `(${window.mapsite.mouseTile.x}, ${window.mapsite.mouseTile.y})`;
+    window.mapsite.mousePos = {
+        tile: canvasCoordsToTileCoords({canvasX: x, canvasY: y}),
+        canvas: {x, y},
+    };
+    document.getElementById('pointer-location').innerText = `(${window.mapsite.mousePos.tile.x}, ${window.mapsite.mousePos.tile.y})`;
+}
+
+const clearMousePos = () => {
+    window.mapsite.mousePos = {tile: null, canvas: null};
 }
 
 const zoom = (amount) => {
@@ -277,14 +346,15 @@ const assignCanvasMouseListeners = () => {
     canvas.addEventListener('mouseup', canvasDragStop);
     canvas.addEventListener('mouseleave', canvasDragStop);
     canvas.addEventListener('mousemove', canvasDrag);
-    canvas.addEventListener('mousemove', updateMouseTile);
+    canvas.addEventListener('mousemove', updateMousePos);
+    canvas.addEventListener('mouseleave', clearMousePos);
 }
 
 addEventListener('load', () => {
     resizeCanvas();
     addEventListener('resize', () => {
         resizeCanvas();
-        drawFullMap(true);
+        loadMissingChunks();
     });
     assignCanvasMouseListeners();
     connectWebSocket();
