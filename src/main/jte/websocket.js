@@ -19,7 +19,6 @@ const handleMessage = (message) => {
                     window.mapsite.players.push(playerUpdate);
                 }
             });
-            drawFullMap(false);
         }
         if (messageJson.mapUpdates !== void 0) {
             messageJson.mapUpdates.forEach(([tileX, tileY, rgbInt]) => {
@@ -35,7 +34,14 @@ const handleMessage = (message) => {
                     ctx.fillRect(offsetX, offsetY, 1, 1);
                 }
             });
-            drawFullMap(false);
+        }
+        if (messageJson.chunkUpdates !== void 0) {
+            messageJson.chunkUpdates.forEach(([chunkX, chunkY]) => {
+                const chunkKey = `${chunkX},${chunkY}`;
+                if (window.mapsite.chunks[chunkKey]) {
+                    window.mapsite.chunksToFetch.add(chunkKey);
+                }
+            })
         }
     } catch (err) {
         console.error(err);

@@ -88,7 +88,7 @@ public class MapRoute extends SparkRouteHandler {
 
         GameObject obj = tileRegion.objectLayer.getObjectByRegion(0, regionTileX, regionTileY);
         if (obj.getID() != 0) {
-            return obj.getMapColor(regionManager.level, tileX, tileY);
+            return obj.mapColor;
         }
 
         GameTile tile = tileRegion.tileLayer.getTileByRegion(regionTileX, regionTileY);

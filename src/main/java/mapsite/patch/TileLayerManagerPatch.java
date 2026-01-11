@@ -25,7 +25,7 @@ public class TileLayerManagerPatch {
             if (object.getID() == 0) {
                 WebSocketUpdateService.putMapUpdate(
                         new TileLocation(level.getIdentifier(), tileX, tileY),
-                        level.getTile(tileX, tileY).getMapColor(level, tileX, tileY)
+                        level.getTile(tileX, tileY).mapColor
                 );
             }
         }

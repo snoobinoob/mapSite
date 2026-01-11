@@ -10,6 +10,7 @@ public class Settings extends ModSettings {
     public static long mapUpdateRateMs = 5000;
     public static int mapChunkFetchRateMs = 100;
     public static int mapChunkSize = 64;
+    public static int mapChunkUpdateRateMs = 10000;
 
     @Override
     public void addSaveData(SaveData save) {
@@ -18,6 +19,7 @@ public class Settings extends ModSettings {
         save.addLong("mapUpdateRateMs", mapUpdateRateMs);
         save.addInt("mapChunkFetchRateMs", mapChunkFetchRateMs);
         save.addInt("mapChunkSize", mapChunkSize);
+        save.addInt("mapChunkUpdateRateMs", mapChunkUpdateRateMs);
     }
 
     @Override
@@ -27,5 +29,6 @@ public class Settings extends ModSettings {
         mapUpdateRateMs = save.getLong("mapUpdateRateMs", 5000);
         mapChunkFetchRateMs = save.getInt("mapChunkFetchRateMs", 100);
         mapChunkSize = save.getInt("mapChunkSize", 64);
+        mapChunkUpdateRateMs = save.getInt("mapChunkUpdateRateMs", 10000);
     }
 }

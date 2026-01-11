@@ -12,10 +12,9 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 @WebSocket
 public class SparkWebSocket {
@@ -92,6 +91,15 @@ public class SparkWebSocket {
                 updateList.add(new Object[]{tileLocation.tileX, tileLocation.tileY, colorValue})
         );
         toSend.put("mapUpdates", updateList);
+        sendMessageToAll(json.toJSON(toSend));
+    }
+
+    public void sendChunkUpdates(Set<Point> chunkUpdates) {
+        JSON json = new JSON();
+        Map<String, Object> toSend = new HashMap<>();
+        List<Object[]> updateList = new ArrayList<>();
+        chunkUpdates.forEach((chunkPoint) -> updateList.add(new Object[]{chunkPoint.x, chunkPoint.y}));
+        toSend.put("chunkUpdates", updateList);
         sendMessageToAll(json.toJSON(toSend));
     }
 }

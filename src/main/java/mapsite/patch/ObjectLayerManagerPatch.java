@@ -32,11 +32,12 @@ public class ObjectLayerManagerPatch {
                 GameTile tile = level.getTile(tileX, tileY);
                 WebSocketUpdateService.putMapUpdate(
                         new TileLocation(level.getIdentifier(), tileX, tileY),
-                        tile.getMapColor(level, tileX, tileY));
+                        tile.mapColor
+                );
             } else {
                 WebSocketUpdateService.putMapUpdate(
                         new TileLocation(level.getIdentifier(), tileX, tileY),
-                        object.getMapColor(level, tileX, tileY)
+                        object.mapColor
                 );
             }
         }
