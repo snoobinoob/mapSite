@@ -19,6 +19,7 @@ public class SparkWebapp {
         Spark.webSocket("/ws", websocket);
         registerPath("/", IndexRoute.class);
         registerPath("/map", MapRoute.class);
+        registerPath("/settlements", SettlementsRoute.class);
     }
 
     private static void registerPath(String path, Class<? extends SparkRouteHandler> handlerClass) {

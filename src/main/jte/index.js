@@ -2,6 +2,7 @@ window.mapsite = {
     chunks: {},
     chunksToFetch: new Set(),
     players: [],
+    settlements: [],
     dragStartTile: null,
     dragDelta: {x: 0, y: 0},
     mouseTile: null,
@@ -19,6 +20,7 @@ const drawFullMap = (loadMissingRegions) => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     drawChunks({ctx, minTileX, minTileY, maxTileX, maxTileY, loadMissingRegions});
+    drawSettlements({ctx, minTileX, minTileY, maxTileX, maxTileY});
     drawPlayers({ctx, minTileX, minTileY, maxTileX, maxTileY});
 }
 
@@ -38,6 +40,21 @@ const drawPlayers = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
             ctx.fillStyle = 'black';
             ctx.fillText(player.name, x - (textWidth / 2), y - 12);
         }
+    }
+}
+
+const drawSettlements = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
+    for (const settlement of window.mapsite.settlements) {
+        const {bounds} = settlement;
+        if (bounds[0][0] > maxTileX || bounds[0][1] > maxTileY || bounds[1][0] < minTileX || bounds[1][1] < minTileY) {
+            break;
+        }
+
+        const startCoords = tileCoordsToCanvasCoords({tileX: bounds[0][0], tileY: bounds[0][1]});
+        const endCoords = tileCoordsToCanvasCoords({tileX: bounds[1][0], tileY: bounds[1][1]});
+
+        ctx.fillStyle = 'rgba(80, 255, 150, 0.2)';
+        ctx.fillRect(startCoords.x, startCoords.y, endCoords.x - startCoords.x, endCoords.y - startCoords.y);
     }
 }
 
@@ -73,6 +90,12 @@ const drawChunk = ({chunkX, chunkY, ctx, loadMissingRegions}) => {
     }
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(chunkData, offsetX, offsetY, chunkSizeInPixels, chunkSizeInPixels);
+}
+
+const loadSettlements = () => {
+    fetch('/settlements')
+        .then((res) => res.json())
+        .then((settlementData) => window.mapsite.settlements = settlementData);
 }
 
 const assignChunkData = ({chunkX, chunkY, chunkData}) => {
@@ -248,5 +271,6 @@ addEventListener('load', () => {
     assignCanvasMouseListeners();
     connectWebSocket();
     startFetcher();
+    loadSettlements();
     goToStartingLocation();
 });
