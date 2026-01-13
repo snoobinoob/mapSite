@@ -9,7 +9,7 @@ const fetchChunk = async (chunkStr) => {
 
     const result = await fetch(`/map?x=${minX},${maxX}&y=${minY},${maxY}`);
     if (result.ok) {
-        assignChunkData({chunkX, chunkY, chunkData: await result.json()});
+        assignChunkData({chunkX, chunkY, chunkData: await result.bytes()});
     } else {
         setTimeout(() => window.mapsite.chunksToFetch.add(chunkStr), 500);
     }

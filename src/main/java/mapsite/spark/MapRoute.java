@@ -1,5 +1,6 @@
 package mapsite.spark;
 
+import mapsite.Settings;
 import necesse.engine.GameLog;
 import necesse.engine.network.server.Server;
 import necesse.engine.save.LoadData;
@@ -11,13 +12,15 @@ import necesse.level.maps.Level;
 import necesse.level.maps.regionSystem.Region;
 import necesse.level.maps.regionSystem.RegionManager;
 import necesse.level.maps.regionSystem.managers.RegionFilesManager;
-import org.eclipse.jetty.util.ajax.JSON;
 import spark.Route;
 import spark.Spark;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MapRoute extends SparkRouteHandler {
     public MapRoute(Server server) {
@@ -41,12 +44,14 @@ public class MapRoute extends SparkRouteHandler {
         int endRegionY = regionManager.getRegionCoordByTile(yLimits[1]);
 
         Map<Point, Region> regions = new HashMap<>();
+        AtomicBoolean containsGeneratedRegion = new AtomicBoolean(false);
         for (int y = startRegionY; y <= endRegionY; y++) {
             for (int x = startRegionX; x <= endRegionX; x++) {
                 regions.compute(new Point(x, y), (key, prevValue) -> {
                     if (!regionManager.isRegionGenerated(key.x, key.y)) {
                         return null;
                     }
+                    containsGeneratedRegion.set(true);
                     if (regionManager.isRegionLoaded(key.x, key.y)) {
                         return regionManager.getRegion(key.x, key.y, false);
                     }
@@ -54,23 +59,30 @@ public class MapRoute extends SparkRouteHandler {
                 });
             }
         }
-        int[][] mapColors = new int[yLimits[1] - yLimits[0] + 1][xLimits[1] - xLimits[0] + 1];
 
+        HttpServletResponse rawResponse = res.raw();
+        ServletOutputStream out = rawResponse.getOutputStream();
+        rawResponse.addHeader("content-type", "application/octet-stream");
+
+        if (!containsGeneratedRegion.get()) {
+            out.write(0);
+            return rawResponse;
+        }
+
+        out.write(1);
         int tileX, tileY;
-        for (int y = 0; y < mapColors.length; y++) {
+        for (int y = 0; y < Settings.mapChunkSize; y++) {
             tileY = yLimits[0] + y;
-            for (int x = 0; x < mapColors[y].length; x++) {
+            for (int x = 0; x < Settings.mapChunkSize; x++) {
                 tileX = xLimits[0] + x;
                 Color mapColor = getTileColor(regions, regionManager, tileX, tileY);
-                mapColors[y][x] = mapColor.getRGB();
+                out.write(mapColor.getRed());
+                out.write(mapColor.getGreen());
+                out.write(mapColor.getBlue());
             }
         }
 
-        JSON json = new JSON();
-        String result = json.toJSON(mapColors);
-
-        res.header("content-type", "text/json");
-        return result;
+        return rawResponse;
     };
 
     private Color getTileColor(Map<Point, Region> regions, RegionManager regionManager, int tileX, int tileY) {

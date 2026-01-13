@@ -164,18 +164,23 @@ const assignChunkData = ({chunkX, chunkY, chunkData}) => {
     chunkCanvas.height = window.mapsite.chunkSize;
     chunkCanvas.width = window.mapsite.chunkSize;
 
-    const imageData = ctx.createImageData(chunkCanvas.width, chunkCanvas.height);
-    for (let y = 0; y < chunkCanvas.height; y++) {
-        for (let x = 0; x < chunkCanvas.width; x++) {
-            const index = 4 * (y * chunkCanvas.width + x);
-            const {r, g, b, a} = toColor(chunkData[y][x]);
-            imageData.data[index] = r;
-            imageData.data[index + 1] = g;
-            imageData.data[index + 2] = b;
-            imageData.data[index + 3] = a;
+    if (chunkData[0] === 0) {
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, chunkCanvas.width, chunkCanvas.height);
+    } else {
+        const imageData = ctx.createImageData(chunkCanvas.width, chunkCanvas.height);
+        for (let y = 0; y < chunkCanvas.height; y++) {
+            for (let x = 0; x < chunkCanvas.width; x++) {
+                const imageIndex = 4 * (y * chunkCanvas.width + x);
+                const dataIndex = 1 + 3 * (y * chunkCanvas.width + x);
+                imageData.data[imageIndex] = chunkData[dataIndex];
+                imageData.data[imageIndex + 1] = chunkData[dataIndex + 1];
+                imageData.data[imageIndex + 2] = chunkData[dataIndex + 2];
+                imageData.data[imageIndex + 3] = 255;
+            }
         }
+        ctx.putImageData(imageData, 0, 0);
     }
-    ctx.putImageData(imageData, 0, 0);
     window.mapsite.chunks[`${chunkX},${chunkY}`] = chunkCanvas;
     drawChunk({chunkX, chunkY, ctx: document.getElementById('canvas').getContext('2d')});
 }
