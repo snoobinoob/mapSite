@@ -194,6 +194,7 @@ tasks.register('buildModJar', Jar) {
     from(fileTree("src/main/jte"), {
         include "**/*.js"
         include "**/*.css"
+        include "**/*.png"
         into "resources/web"
     })
 

@@ -100,10 +100,7 @@ const drawPlayers = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
     for (const player of window.mapsite.players) {
         if (minTileX <= player.x && player.x <= maxTileX && minTileY <= player.y && player.y <= maxTileY) {
             const {x, y} = tileCoordsToCanvasCoords({tileX: player.x, tileY: player.y});
-            ctx.fillStyle = 'lightblue';
-            ctx.beginPath();
-            ctx.arc(x, y, 8, 0, 2 * Math.PI);
-            ctx.fill();
+            ctx.drawImage(window.mapsite.playerImage, x - 12, y - 12, 24, 24);
             if (window.mapsite.drawPlayerNames) {
                 drawPlayerName({ctx, player});
             }
@@ -359,6 +356,9 @@ const assignCanvasMouseListeners = () => {
     canvas.addEventListener('mousemove', updateMousePos);
     canvas.addEventListener('mouseleave', clearMousePos);
 }
+
+window.mapsite.playerImage = new Image();
+window.mapsite.playerImage.src = 'player.png';
 
 addEventListener('load', () => {
     resizeCanvas();

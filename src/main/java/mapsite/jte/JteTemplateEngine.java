@@ -1,14 +1,15 @@
 package mapsite.jte;
 
-import gg.jte.CodeResolver;
 import gg.jte.ContentType;
 import gg.jte.TemplateEngine;
 import gg.jte.TemplateOutput;
 import gg.jte.output.StringOutput;
 
+import javax.servlet.ServletOutputStream;
+
 public class JteTemplateEngine {
     private static TemplateEngine templateEngine;
-    private static CodeResolver modResolver;
+    private static ModJarResolver modResolver;
 
     public static void init() {
         templateEngine = TemplateEngine.createPrecompiled(ContentType.Html);
@@ -21,7 +22,7 @@ public class JteTemplateEngine {
         return output.toString();
     }
 
-    public static String renderResource(String templateName) {
-        return modResolver.resolve(templateName);
+    public static void writeResourceBytes(String templateName, ServletOutputStream out) {
+        modResolver.write(templateName, out);
     }
 }
