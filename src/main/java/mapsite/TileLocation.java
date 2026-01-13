@@ -1,6 +1,9 @@
 package mapsite;
 
+import necesse.engine.util.GameMath;
 import necesse.engine.util.LevelIdentifier;
+
+import java.awt.*;
 
 public class TileLocation {
     public LevelIdentifier levelIdentifier;
@@ -11,6 +14,25 @@ public class TileLocation {
         this.levelIdentifier = levelIdentifier;
         this.tileX = tileX;
         this.tileY = tileY;
+    }
+
+    public TileLocation(int tileX, int tileY) {
+        this(LevelIdentifier.SURFACE_IDENTIFIER, tileX, tileY);
+    }
+
+    public static TileLocation fromChunkCoords(int chunkX, int chunkY) {
+        return new TileLocation(
+                chunkX * Settings.mapChunkSize,
+                chunkY * Settings.mapChunkSize
+        );
+    }
+
+    public Point toRegionPoint() {
+        return new Point(GameMath.getRegionCoordByTile(tileX), GameMath.getRegionCoordByTile(tileY));
+    }
+
+    public Point toChunkPoint() {
+        return new Point(tileX / Settings.mapChunkSize, tileY / Settings.mapChunkSize);
     }
 
     @Override

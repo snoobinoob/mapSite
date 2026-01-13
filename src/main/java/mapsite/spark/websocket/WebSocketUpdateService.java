@@ -5,7 +5,6 @@ import mapsite.TileLocation;
 import mapsite.Utils;
 import mapsite.spark.SparkWebapp;
 import necesse.engine.GameLog;
-import necesse.engine.util.GameMath;
 import necesse.level.maps.regionSystem.Region;
 
 import java.awt.*;
@@ -70,8 +69,8 @@ public class WebSocketUpdateService {
             return;
         }
         AtomicBoolean shouldUseUpdate = new AtomicBoolean(true);
-        Point regionPoint = new Point(GameMath.getRegionCoordByTile(tilePoint.tileX), GameMath.getRegionCoordByTile(tilePoint.tileY));
-        Point chunkPoint = Utils.toChunkPoint(tilePoint);
+        Point regionPoint = tilePoint.toRegionPoint();
+        Point chunkPoint = tilePoint.toChunkPoint();
         safeOperateWithLock(() -> {
             shouldUseUpdate.set(!(fullRegionsUpdating.contains(regionPoint) || chunksToUpdate.contains(chunkPoint)));
         }, chunkUpdateLock);

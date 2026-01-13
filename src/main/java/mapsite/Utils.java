@@ -10,10 +10,6 @@ public class Utils {
         return toChunkPoint(GameMath.getTileCoordByRegion(region.regionX), GameMath.getTileCoordByRegion(region.regionY));
     }
 
-    public static Point toChunkPoint(TileLocation location) {
-        return toChunkPoint(location.tileX, location.tileY);
-    }
-
     public static Point toChunkPoint(int tileX, int tileY) {
         return new Point(tileX / Settings.mapChunkSize, tileY / Settings.mapChunkSize);
     }

@@ -1,6 +1,7 @@
 package mapsite.spark;
 
 import mapsite.Settings;
+import mapsite.TileLocation;
 import necesse.engine.GameLog;
 import necesse.engine.network.server.Server;
 import necesse.engine.save.LoadData;
@@ -33,20 +34,24 @@ public class MapRoute extends SparkRouteHandler {
     }
 
     private final Route handleGetRoot = (req, res) -> {
-        int[] xLimits = parsePairedNumbers(req.queryParams("x"));
-        int[] yLimits = parsePairedNumbers(req.queryParams("y"));
+        int chunkX = req.queryMap("x").integerValue();
+        int chunkY = req.queryMap("y").integerValue();
+
+        TileLocation startLocation = TileLocation.fromChunkCoords(chunkX, chunkY);
+        TileLocation endLocation = new TileLocation(
+                startLocation.tileX + Settings.mapChunkSize,
+                startLocation.tileY + Settings.mapChunkSize
+        );
 
         Level level = server.world.levelManager.getLevel(LevelIdentifier.SURFACE_IDENTIFIER);
         RegionManager regionManager = level.regionManager;
-        int startRegionX = regionManager.getRegionCoordByTile(xLimits[0]);
-        int startRegionY = regionManager.getRegionCoordByTile(yLimits[0]);
-        int endRegionX = regionManager.getRegionCoordByTile(xLimits[1]);
-        int endRegionY = regionManager.getRegionCoordByTile(yLimits[1]);
+        Point startRegionPoint = startLocation.toRegionPoint();
+        Point endRegionPoint = endLocation.toRegionPoint();
 
         Map<Point, Region> regions = new HashMap<>();
         AtomicBoolean containsGeneratedRegion = new AtomicBoolean(false);
-        for (int y = startRegionY; y <= endRegionY; y++) {
-            for (int x = startRegionX; x <= endRegionX; x++) {
+        for (int y = startRegionPoint.y; y <= endRegionPoint.y; y++) {
+            for (int x = startRegionPoint.x; x <= endRegionPoint.x; x++) {
                 regions.compute(new Point(x, y), (key, prevValue) -> {
                     if (!regionManager.isRegionGenerated(key.x, key.y)) {
                         return null;
@@ -72,9 +77,9 @@ public class MapRoute extends SparkRouteHandler {
         out.write(1);
         int tileX, tileY;
         for (int y = 0; y < Settings.mapChunkSize; y++) {
-            tileY = yLimits[0] + y;
+            tileY = startLocation.tileY + y;
             for (int x = 0; x < Settings.mapChunkSize; x++) {
-                tileX = xLimits[0] + x;
+                tileX = startLocation.tileX + x;
                 Color mapColor = getTileColor(regions, regionManager, tileX, tileY);
                 out.write(mapColor.getRed());
                 out.write(mapColor.getGreen());
@@ -152,16 +157,4 @@ public class MapRoute extends SparkRouteHandler {
             return e.getMessage();
         }
     };
-
-    private int[] parsePairedNumbers(String numberStr) {
-        String[] splitNumbers = numberStr.split(",");
-        try {
-            int firstNumber = Integer.parseInt(splitNumbers[0]);
-            int secondNumber = Integer.parseInt(splitNumbers[1]);
-            return new int[]{firstNumber, secondNumber};
-        } catch (NumberFormatException e) {
-            GameLog.warn.println("Could not parse number pair \"" + numberStr + "\"");
-        }
-        return new int[]{0, 0};
-    }
 }
