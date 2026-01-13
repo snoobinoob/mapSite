@@ -98,7 +98,7 @@ const distToMouse2 = ({tileX, tileY}) => {
 
 const drawPlayers = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
     for (const player of window.mapsite.players) {
-        if (minTileX <= player.x && player.x <= maxTileX && minTileY <= player.y && player.y <= maxTileY) {
+        if (player.levelID === 'surface' && minTileX <= player.x && player.x <= maxTileX && minTileY <= player.y && player.y <= maxTileY) {
             const {x, y} = tileCoordsToCanvasCoords({tileX: player.x, tileY: player.y});
             ctx.drawImage(window.mapsite.playerImage, x - 12, y - 12, 24, 24);
             if (window.mapsite.drawPlayerNames) {

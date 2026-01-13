@@ -45,11 +45,12 @@ const handleMessage = (message) => {
     }
 }
 
-const createPlayerListElement = ({name, x, y}) => {
+const createPlayerListElement = ({name, x, y, levelID}) => {
     const outerDiv = document.createElement('div');
     const innerButton = document.createElement('button');
     innerButton.className = 'button player-button';
     innerButton.innerText = name;
+    innerButton.disabled = levelID !== 'surface';
     innerButton.onclick = () => goToLocation({x: Math.round(x), y: Math.round(y)});
     outerDiv.appendChild(innerButton);
     return outerDiv;
