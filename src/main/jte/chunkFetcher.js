@@ -11,7 +11,7 @@ const fetchChunk = async (chunkStr) => {
     if (result.ok) {
         assignChunkData({chunkX, chunkY, chunkData: await result.json()});
     } else {
-        window.mapsite.chunksToFetch.add(chunkStr);
+        setTimeout(() => window.mapsite.chunksToFetch.add(chunkStr), 500);
     }
 }
 

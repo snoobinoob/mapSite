@@ -1,25 +1,20 @@
 package mapsite;
 
+import mapsite.command.StartWebappCommand;
+import mapsite.command.StopWebappCommand;
 import mapsite.jte.JteTemplateEngine;
 import mapsite.spark.SparkWebapp;
 import necesse.engine.GameEventListener;
 import necesse.engine.GameEvents;
-import necesse.engine.commands.*;
-import necesse.engine.commands.parameterHandlers.StringParameterHandler;
+import necesse.engine.GameLog;
+import necesse.engine.commands.CommandsManager;
 import necesse.engine.events.ServerStartEvent;
 import necesse.engine.events.ServerStopEvent;
 import necesse.engine.modLoader.ModSettings;
 import necesse.engine.modLoader.annotations.ModEntry;
-import necesse.engine.network.client.Client;
-import necesse.engine.network.server.Server;
-import necesse.engine.network.server.ServerClient;
 
 @ModEntry
 public class MapSiteEntry {
-    public void init() {
-        System.out.println("Hello World!");
-    }
-
     public ModSettings initSettings() {
         return new Settings();
     }
@@ -28,6 +23,7 @@ public class MapSiteEntry {
         GameEvents.addListener(ServerStartEvent.class, new GameEventListener<ServerStartEvent>() {
             @Override
             public void onEvent(ServerStartEvent serverStartEvent) {
+                GameLog.out.println("Starting mapsite server on port " + Settings.webappPort);
                 JteTemplateEngine.init();
                 SparkWebapp.init(serverStartEvent.server);
             }
@@ -36,33 +32,12 @@ public class MapSiteEntry {
         GameEvents.addListener(ServerStopEvent.class, new GameEventListener<ServerStopEvent>() {
             @Override
             public void onEvent(ServerStopEvent serverStopEvent) {
+                GameLog.out.println("Stopping mapsite server");
                 SparkWebapp.stop();
             }
         });
 
-        CommandsManager.registerServerCommand(new ModularChatCommand(
-                "mapsite:ws_send",
-                "Send websocket message",
-                PermissionLevel.ADMIN,
-                false,
-                new CmdParameter("message", new StringParameterHandler(), false)
-        ) {
-            @Override
-            public void runModular(Client client, Server server, ServerClient serverClient, Object[] objects, String[] strings, CommandLog commandLog) {
-                SparkWebapp.websocket.sendMessageToAll((String) objects[0]);
-            }
-        });
-
-        CommandsManager.registerServerCommand(new ModularChatCommand(
-                "mapsite:ws_send_players",
-                "Send player info over websocket",
-                PermissionLevel.ADMIN,
-                false
-        ) {
-            @Override
-            public void runModular(Client client, Server server, ServerClient serverClient, Object[] objects, String[] strings, CommandLog commandLog) {
-                SparkWebapp.websocket.sendPlayerInformation();
-            }
-        });
+        CommandsManager.registerServerCommand(new StartWebappCommand());
+        CommandsManager.registerServerCommand(new StopWebappCommand());
     }
 }

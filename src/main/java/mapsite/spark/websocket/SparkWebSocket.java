@@ -27,7 +27,6 @@ public class SparkWebSocket {
 
     @OnWebSocketConnect
     public void onConnect(Session session) {
-        System.out.println("Connection received from " + session.getRemoteAddress());
         sessions.add(session);
         if (sessions.size() == 1) {
             WebSocketUpdateService.start();
@@ -36,8 +35,6 @@ public class SparkWebSocket {
 
     @OnWebSocketClose
     public void onClose(Session session, int code, String reason) {
-        System.out.println("Connection closed from " + session.getRemoteAddress());
-        System.out.println("Code: " + code + ", Reason: " + reason);
         sessions.remove(session);
         if (sessions.isEmpty()) {
             WebSocketUpdateService.stop();
