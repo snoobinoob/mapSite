@@ -11,14 +11,11 @@ const handleMessage = (message) => {
     try {
         const messageJson = JSON.parse(message);
         if (messageJson.players !== void 0) {
-            messageJson.players.forEach((playerUpdate) => {
-                const player = window.mapsite.players.find(({name}) => name === playerUpdate.name);
-                if (player) {
-                    Object.assign(player, playerUpdate);
-                } else {
-                    window.mapsite.players.push(playerUpdate);
-                }
-            });
+            window.mapsite.players = messageJson.players;
+            document.getElementById('player-label').innerText = `Online players (${window.mapsite.players.length}/${window.mapsite.maxPlayers})`;
+            const playerList = document.getElementById('player-list');
+            const playerNodes = window.mapsite.players.map(createPlayerListElement);
+            playerList.replaceChildren(...playerNodes);
         }
         if (messageJson.mapUpdates !== void 0) {
             messageJson.mapUpdates.forEach(([tileX, tileY, rgbInt]) => {
@@ -46,4 +43,14 @@ const handleMessage = (message) => {
     } catch (err) {
         console.error(err);
     }
+}
+
+const createPlayerListElement = ({name, x, y}) => {
+    const outerDiv = document.createElement('div');
+    const innerButton = document.createElement('button');
+    innerButton.className = 'button player-button';
+    innerButton.innerText = name;
+    innerButton.onclick = () => goToLocation({x: Math.round(x), y: Math.round(y)});
+    outerDiv.appendChild(innerButton);
+    return outerDiv;
 }

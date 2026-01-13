@@ -53,14 +53,12 @@ public class WebSocketUpdateService {
     }
 
     public static void setFullRegionUpdating(Region region) {
-        System.out.println("Region[" + region.regionX + ", " + region.regionY + "] updating");
         safeOperateWithLock(() -> {
             WebSocketUpdateService.fullRegionsUpdating.add(new Point(region.regionX, region.regionY));
         }, chunkUpdateLock);
     }
 
     public static void setFullRegionUpdated(Region region) {
-        System.out.println("Region[" + region.regionX + ", " + region.regionY + "] updated");
         safeOperateWithLock(() -> {
             WebSocketUpdateService.fullRegionsUpdating.remove(new Point(region.regionX, region.regionY));
             WebSocketUpdateService.chunksToUpdate.add(Utils.toChunkPoint(region));

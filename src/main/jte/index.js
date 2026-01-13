@@ -21,8 +21,12 @@ const drawFullMap = () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     drawChunks({ctx, minTileX, minTileY, maxTileX, maxTileY});
-    drawSettlements({ctx, minTileX, minTileY, maxTileX, maxTileY});
-    drawPlayers({ctx, minTileX, minTileY, maxTileX, maxTileY});
+    if (document.getElementById('settlement-layer').checked) {
+        drawSettlements({ctx, minTileX, minTileY, maxTileX, maxTileY});
+    }
+    if (document.getElementById('player-layer').checked) {
+        drawPlayers({ctx, minTileX, minTileY, maxTileX, maxTileY});
+    }
     drawTooltip({ctx});
 
     requestAnimationFrame(drawFullMap);
@@ -33,7 +37,7 @@ const drawTooltip = ({ctx}) => {
         return;
     }
 
-    if (!window.mapsite.drawPlayerNames) {
+    if (document.getElementById('player-layer').checked && !window.mapsite.drawPlayerNames) {
         const {player, dist2} = window.mapsite.players.reduce((acc, player) => {
             const dist2 = distToMouse2({tileX: player.x, tileY: player.y});
             return dist2 > acc.dist2 ? acc : {player, dist2};
@@ -44,12 +48,14 @@ const drawTooltip = ({ctx}) => {
         }
     }
 
-    const mouseTile = window.mapsite.mousePos.tile;
-    for (const settlement of window.mapsite.settlements) {
-        const {bounds} = settlement;
-        if (bounds[0][0] <= mouseTile.x && bounds[0][1] <= mouseTile.y && mouseTile.x <= bounds[1][0] && mouseTile.y <= bounds[1][1]) {
-            drawSettlementTooltip({ctx, settlement});
-            return;
+    if (document.getElementById('settlement-layer').checked) {
+        const mouseTile = window.mapsite.mousePos.tile;
+        for (const settlement of window.mapsite.settlements) {
+            const {bounds} = settlement;
+            if (bounds[0][0] <= mouseTile.x && bounds[0][1] <= mouseTile.y && mouseTile.x <= bounds[1][0] && mouseTile.y <= bounds[1][1]) {
+                drawSettlementTooltip({ctx, settlement});
+                return;
+            }
         }
     }
 }
@@ -321,7 +327,7 @@ const updateMousePos = ({x, y}) => {
         tile: canvasCoordsToTileCoords({canvasX: x, canvasY: y}),
         canvas: {x, y},
     };
-    document.getElementById('pointer-location').innerText = `(${window.mapsite.mousePos.tile.x}, ${window.mapsite.mousePos.tile.y})`;
+    document.getElementById('mouse-position').innerText = `Mouse position: (${window.mapsite.mousePos.tile.x}, ${window.mapsite.mousePos.tile.y})`;
 }
 
 const clearMousePos = () => {
@@ -338,6 +344,10 @@ const zoom = (amount) => {
     window.mapsite.pixelsPerTile = levels[newLevel];
     updateUrl();
     loadMissingChunks();
+}
+
+const copyLink = () => {
+    return navigator.clipboard.writeText(window.location.href);
 }
 
 const assignCanvasMouseListeners = () => {

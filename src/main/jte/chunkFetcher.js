@@ -8,7 +8,11 @@ const fetchChunk = async (chunkStr) => {
     const maxY = minY + window.mapsite.chunkSize - 1;
 
     const result = await fetch(`/map?x=${minX},${maxX}&y=${minY},${maxY}`);
-    assignChunkData({chunkX, chunkY, chunkData: await result.json()})
+    if (result.ok) {
+        assignChunkData({chunkX, chunkY, chunkData: await result.json()});
+    } else {
+        window.mapsite.chunksToFetch.add(chunkStr);
+    }
 }
 
 let intervalTimer = null;
