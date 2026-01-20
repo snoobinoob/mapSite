@@ -2,6 +2,7 @@ package mapsite.spark.websocket;
 
 import mapsite.TileLocation;
 import mapsite.webmodel.PlayerInfoModel;
+import mapsite.webmodel.SettlementInfoModel;
 import necesse.engine.GameLog;
 import necesse.engine.network.server.Server;
 import org.eclipse.jetty.util.ajax.JSON;
@@ -97,6 +98,13 @@ public class SparkWebSocket {
         List<Object[]> updateList = new ArrayList<>();
         chunkUpdates.forEach((chunkPoint) -> updateList.add(new Object[]{chunkPoint.x, chunkPoint.y}));
         toSend.put("chunkUpdates", updateList);
+        sendMessageToAll(json.toJSON(toSend));
+    }
+
+    public void sendSettlementUpdate(SettlementInfoModel settlementInfo) {
+        JSON json = new JSON();
+        Map<String, Object> toSend = new HashMap<>();
+        toSend.put("settlementUpdate", settlementInfo.toMap(server));
         sendMessageToAll(json.toJSON(toSend));
     }
 }

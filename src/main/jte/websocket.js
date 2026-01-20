@@ -10,14 +10,14 @@ const connectWebSocket = () => {
 const handleMessage = (message) => {
     try {
         const messageJson = JSON.parse(message);
-        if (messageJson.players !== void 0) {
+        if (messageJson.players) {
             window.mapsite.players = messageJson.players;
             document.getElementById('player-label').innerText = `Online players (${window.mapsite.players.length}/${window.mapsite.maxPlayers})`;
             const playerList = document.getElementById('player-list');
             const playerNodes = window.mapsite.players.map(createPlayerListElement);
             playerList.replaceChildren(...playerNodes);
         }
-        if (messageJson.mapUpdates !== void 0) {
+        if (messageJson.mapUpdates) {
             messageJson.mapUpdates.forEach(([tileX, tileY, rgbInt]) => {
                 const chunkX = Math.floor(tileX / window.mapsite.chunkSize);
                 const chunkY = Math.floor(tileY / window.mapsite.chunkSize);
@@ -32,13 +32,23 @@ const handleMessage = (message) => {
                 }
             });
         }
-        if (messageJson.chunkUpdates !== void 0) {
+        if (messageJson.chunkUpdates) {
             messageJson.chunkUpdates.forEach(([chunkX, chunkY]) => {
                 const chunkKey = `${chunkX},${chunkY}`;
                 if (window.mapsite.chunks[chunkKey]) {
                     window.mapsite.chunksToFetch.add(chunkKey);
                 }
             })
+        }
+        if (messageJson.settlementUpdate) {
+            const index = window.mapsite.settlements.findIndex(({id}) => id === messageJson.settlementUpdate.id);
+            if (index === -1) {
+                window.mapsite.settlements.push(messageJson.settlementUpdate);
+            } else if (messageJson.settlementUpdate.disbanded) {
+                window.mapsite.settlements.splice(index, 1);
+            } else {
+                window.mapsite.settlements[index] = messageJson.settlementUpdate;
+            }
         }
     } catch (err) {
         console.error(err);

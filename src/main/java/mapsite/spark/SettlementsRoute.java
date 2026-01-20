@@ -25,7 +25,7 @@ public class SettlementsRoute extends SparkRouteHandler {
         List<Map<String, Object>> settlements = settlementsData
                 .streamSettlements()
                 .map(SettlementInfoModel::new)
-                .map(SettlementInfoModel::toMap)
+                .map(s -> s.toMap(server))
                 .toList();
         JSON json = new JSON();
         return json.toJSON(settlements);
