@@ -19,7 +19,7 @@ public class Settings extends ModSettings {
         int value();
     }
 
-    @DefaultValue(8080)
+    @DefaultValue(18571)
     public static int webappPort;
 
     @DefaultValue(1000)
@@ -31,7 +31,7 @@ public class Settings extends ModSettings {
     @DefaultValue(100)
     public static int mapChunkFetchRateMs;
 
-    @DefaultValue(128)
+    @DefaultValue(256)
     public static int mapChunkSize;
 
     @DefaultValue(10000)
