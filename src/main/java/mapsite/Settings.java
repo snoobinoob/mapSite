@@ -51,8 +51,9 @@ public class Settings extends ModSettings {
     @Override
     public void applyLoadData(LoadData save) {
         for (Field field : Settings.class.getDeclaredFields()) {
+            int value = save.getInt(field.getName(), field.getAnnotation(DefaultValue.class).value());
             try {
-                field.set(null, field.getAnnotation(DefaultValue.class).value());
+                field.set(null, value);
             } catch (IllegalAccessException e) {
                 GameLog.warn.println("MapSite: Error setting " + field.getName());
             }
