@@ -1,5 +1,6 @@
 package mapsite;
 
+import mapsite.command.ConfigureWebappCommand;
 import mapsite.command.StartWebappCommand;
 import mapsite.command.StopWebappCommand;
 import mapsite.jte.JteTemplateEngine;
@@ -39,5 +40,6 @@ public class MapSiteEntry {
 
         CommandsManager.registerServerCommand(new StartWebappCommand());
         CommandsManager.registerServerCommand(new StopWebappCommand());
+        CommandsManager.registerServerCommand(new ConfigureWebappCommand());
     }
 }
