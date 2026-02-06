@@ -1,5 +1,6 @@
 package mapsite.spark;
 
+import mapsite.MainThread;
 import mapsite.Settings;
 import mapsite.TileLocation;
 import necesse.engine.GameLog;
@@ -252,11 +253,12 @@ public class MapRoute extends SparkRouteHandler {
 
     private final Route handleGetRootWrapper = (req, res) -> {
         try {
-            return handleGetRoot.handle(req, res);
+            return MainThread.call(() -> handleGetRoot.handle(req, res));
         } catch (Exception e) {
             e.printStackTrace(GameLog.err);
             res.status(400);
             return e.getMessage();
         }
     };
+
 }

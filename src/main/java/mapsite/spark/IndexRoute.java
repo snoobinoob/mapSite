@@ -1,5 +1,6 @@
 package mapsite.spark;
 
+import mapsite.MainThread;
 import mapsite.jte.JteTemplateEngine;
 import mapsite.webmodel.ServerInfoModel;
 import necesse.engine.network.server.Server;
@@ -26,10 +27,10 @@ public class IndexRoute extends SparkRouteHandler {
         });
     }
 
-    private final Route handleGetRoot = (req, res) -> {
+    private final Route handleGetRoot = (req, res) -> MainThread.call(() -> {
         ServerInfoModel model = new ServerInfoModel(server);
         return JteTemplateEngine.render("index.jte", model);
-    };
+    });
 
     private Route getResource(String resourceName) {
         return getResource(resourceName, "text/html");

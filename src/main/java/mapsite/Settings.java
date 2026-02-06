@@ -37,6 +37,12 @@ public class Settings extends ModSettings {
     @DefaultValue(10000)
     public static int mapChunkUpdateRateMs;
 
+    @DefaultValue(5)
+    public static int maxWebMapViewers;
+
+    @DefaultValue(30)
+    public static int maxWebMapSessionMinutes;
+
     @Override
     public void addSaveData(SaveData save) {
         for (Field field : Settings.class.getDeclaredFields()) {

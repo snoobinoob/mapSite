@@ -1,8 +1,31 @@
 const connectWebSocket = () => {
-    const ws = new WebSocket(`ws://${window.location.host}/ws`);
-    ws.addEventListener('connect', () => console.log('Websocket connected'));
-    ws.addEventListener('close', () => console.log('Websocket closed'));
+    const protocol = (window.location.protocol === 'https:') ? 'wss' : 'ws';
+    const ws = new WebSocket(`${protocol}://${window.location.host}/ws`);
+
+    
+    ws.addEventListener('open', () => {
+        console.log('Websocket connected');
+    });
+
+    
+    ws.addEventListener('close', (ev) => {
+        console.log('Websocket closed', ev.code, ev.reason);
+
+        const reason = ev.reason || 'Disconnected from web map';
+        alert(reason);
+
+        window.mapsite.players = [];
+        const label = document.getElementById('player-label');
+        if (label) {
+            label.innerText = 'Online players (disconnected)';
+        }
+    });
+
     ws.addEventListener('message', ({data}) => handleMessage(data));
+
+    ws.addEventListener('error', () => {
+        console.log('Websocket error');
+    });
 
     window.mapsite.websocket = ws;
 };
@@ -10,6 +33,7 @@ const connectWebSocket = () => {
 const handleMessage = (message) => {
     try {
         const messageJson = JSON.parse(message);
+
         if (messageJson.players) {
             window.mapsite.players = messageJson.players;
             document.getElementById('player-label').innerText = `Online players (${window.mapsite.players.length}/${window.mapsite.maxPlayers})`;
@@ -17,11 +41,13 @@ const handleMessage = (message) => {
             const playerNodes = window.mapsite.players.map(createPlayerListElement);
             playerList.replaceChildren(...playerNodes);
         }
+
         if (messageJson.mapUpdates) {
             messageJson.mapUpdates.forEach(([tileX, tileY, rgbInt]) => {
                 const chunkX = Math.floor(tileX / window.mapsite.chunkSize);
                 const chunkY = Math.floor(tileY / window.mapsite.chunkSize);
                 const chunkData = window.mapsite.chunks[`${chunkX},${chunkY}`];
+
                 if (chunkData?.tagName === 'CANVAS') {
                     const {r, g, b} = toColor(rgbInt);
                     const ctx = chunkData.getContext('2d');
@@ -32,14 +58,16 @@ const handleMessage = (message) => {
                 }
             });
         }
+
         if (messageJson.chunkUpdates) {
             messageJson.chunkUpdates.forEach(([chunkX, chunkY]) => {
                 const chunkKey = `${chunkX},${chunkY}`;
                 if (window.mapsite.chunks[chunkKey]) {
                     window.mapsite.chunksToFetch.add(chunkKey);
                 }
-            })
+            });
         }
+
         if (messageJson.settlementUpdate) {
             const index = window.mapsite.settlements.findIndex(({id}) => id === messageJson.settlementUpdate.id);
             if (index === -1) {
@@ -53,15 +81,17 @@ const handleMessage = (message) => {
     } catch (err) {
         console.error(err);
     }
-}
+};
 
 const createPlayerListElement = ({name, x, y, levelID}) => {
     const outerDiv = document.createElement('div');
     const innerButton = document.createElement('button');
+
     innerButton.className = 'button player-button';
     innerButton.innerText = name;
     innerButton.disabled = levelID !== 'surface';
     innerButton.onclick = () => goToLocation({x: Math.round(x), y: Math.round(y)});
+
     outerDiv.appendChild(innerButton);
     return outerDiv;
-}
+};
