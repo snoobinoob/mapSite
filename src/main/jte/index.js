@@ -48,7 +48,7 @@ const drawTooltip = ({ctx}) => {
         }
     }
 
-    if (document.getElementById('settlement-layer').checked) {
+    if (document.getElementById('settlement-layer').checked && window.mapsite.dragStartTile === null) {
         const mouseTile = window.mapsite.mousePos.tile;
         for (const settlement of window.mapsite.settlements) {
             const {bounds} = settlement;
@@ -112,7 +112,7 @@ const drawSettlements = ({ctx, minTileX, minTileY, maxTileX, maxTileY}) => {
     for (const settlement of window.mapsite.settlements) {
         const {bounds} = settlement;
         if (bounds[0][0] > maxTileX || bounds[0][1] > maxTileY || bounds[1][0] < minTileX || bounds[1][1] < minTileY) {
-            break;
+            continue;
         }
 
         const startCoords = tileCoordsToCanvasCoords({tileX: bounds[0][0], tileY: bounds[0][1]});
