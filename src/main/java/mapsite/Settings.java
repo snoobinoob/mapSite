@@ -25,23 +25,27 @@ public class Settings extends ModSettings {
     @DefaultValue(1000)
     public static int playerUpdateRateMs;
 
-    @DefaultValue(5000)
+    @DefaultValue(7500)
     public static int mapUpdateRateMs;
 
-    @DefaultValue(100)
+    @DefaultValue(120)
     public static int mapChunkFetchRateMs;
 
     @DefaultValue(256)
     public static int mapChunkSize;
 
-    @DefaultValue(10000)
+    @DefaultValue(20000)
     public static int mapChunkUpdateRateMs;
 
-    @DefaultValue(5)
+    @DefaultValue(7)
     public static int maxWebMapViewers;
 
-    @DefaultValue(30)
+    @DefaultValue(20)
     public static int maxWebMapSessionMinutes;
+
+    public Settings() {
+        applyDefaults();
+    }
 
     @Override
     public void addSaveData(SaveData save) {
@@ -54,10 +58,24 @@ public class Settings extends ModSettings {
         }
     }
 
+    private void applyDefaults() {
+        for (Field field : Settings.class.getDeclaredFields()) {
+            try {
+                field.set(null, field.getAnnotation(DefaultValue.class).value());
+            } catch (IllegalAccessException e) {
+                GameLog.warn.println("Mapsite: Error defaulting " + field.getName());
+            }
+        }
+    }
+
     @Override
     public void applyLoadData(LoadData save) {
+        applyDefaults();
         for (Field field : Settings.class.getDeclaredFields()) {
-            int value = save.getInt(field.getName(), field.getAnnotation(DefaultValue.class).value());
+            if (!save.hasLoadDataByName(field.getName())) {
+                continue;
+            }
+            int value = save.getInt(field.getName());
             try {
                 field.set(null, value);
             } catch (IllegalAccessException e) {

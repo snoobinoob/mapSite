@@ -22,12 +22,12 @@ MapSite is configurable via either in-game server commands or by editing the mod
 |-------------------------|---------------|-------------------------------------------------------------------|
 | webappPort              | 18571         | The server port used to host the webapp (ensure this is open)     |
 | mapChunkSize            | 256           | Side length, in tiles, of map chunks in the browser               |
-| mapChunkFetchRateMs     | 100           | How many milliseconds browsers should wait between chunk fetches  |
+| mapChunkFetchRateMs     | 120           | How many milliseconds browsers should wait between chunk fetches  |
 | playerUpdateRateMs      | 1000          | How frequently player information is refreshed in the browser     |
-| mapUpdateRateMs         | 5000          | How frequently tile/object updates are refreshed in the browser   |
-| mapChunkUpdateRateMs    | 10000         | How frequently newly generated areas are refreshed in the browser |
-| maxWebMapViewers        | 5             | The number of concurrently open websockets                        |
-| maxWebMapSessionMinutes | 30            | Number of minutes to keep a websocket session open                |
+| mapUpdateRateMs         | 7500          | How frequently tile/object updates are refreshed in the browser   |
+| mapChunkUpdateRateMs    | 20000         | How frequently newly generated areas are refreshed in the browser |
+| maxWebMapViewers        | 7             | The number of concurrently open websockets                        |
+| maxWebMapSessionMinutes | 20            | Number of minutes to keep a websocket session open                |
 
 ### Configuring via in-game commands
 
